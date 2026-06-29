@@ -58,6 +58,28 @@ function getComparablePattern(pattern) {
   return [...matches].sort((a, b) => Math.abs((a.duration || 0) - (pattern.duration || 0)) - Math.abs((b.duration || 0) - (pattern.duration || 0)))[0];
 }
 
+// ── move description helpers ───────────────────────────────────────────────
+const MOVE_DESCRIPTIONS = {
+  'Bench Press': 'Lie back on a bench and press the weight upward by straightening your arms. Keep a tight core and controlled tempo.',
+  'Deadlift to Upright Row': 'Hinge at the hips to lift the weight, then finish with an upright row. Maintain a flat back and engage the glutes.',
+  'Air Squat - Deep Hold': 'Descend into a full squat, sit your hips back and down. Hold with a tall chest and knees tracking over toes.',
+  'Pushup - Explosive': 'Perform a pushup and explode off the floor at the top. Land softly and control the descent for safety.',
+  'High Plank - Walkout': 'Start standing, walk hands out to a high plank keeping a neutral spine, then walk back. Keep the core engaged.',
+  'Child to Cobra': 'Move gently between Child\'s Pose and Cobra to mobilize the spine; breathe deeply through the transitions.',
+  'Downward Dog + Calf Stretch': 'From Downward Dog, pedal the feet and press heels toward the floor to stretch calves and hamstrings.',
+  'Goblet Squat Pulses': 'Hold a weight at chest level and pulse in the bottom range to build quad and glute endurance.',
+  'Arm Circles - Forward': 'Circle the arms in a controlled motion to warm up the shoulders; keep the core stable.',
+  'Plank Knee Tap \u2022 Alternating': 'Hold a strong plank and reach each knee toward the elbow in a controlled alternating pattern.',
+};
+
+function generateMoveDescription(name = '') {
+  if (!name) return '';
+  if (MOVE_DESCRIPTIONS[name]) return MOVE_DESCRIPTIONS[name];
+  // fallback: create a short, neutral description based on the move name
+  const simple = `${name} — perform with control, prioritize good form, and breathe steadily.`;
+  return simple;
+}
+
 // ── core generator: learns directly from real workout patterns ─────────────
 function generateWorkout(typeId) {
   const pools = DATA.movePools[typeId] || DATA.movePools['all'] || {};
@@ -598,6 +620,7 @@ function JournalPage() {
               {j.thumbnail&&<img src={j.thumbnail} alt="" style={{width:52,height:52,borderRadius:8,objectFit:'cover',background:C.border,flexShrink:0}} onError={e=>e.target.style.display='none'}/>}
               <div style={{flex:1}}>
                 <div style={{fontWeight:700,fontSize:13,lineHeight:1.3,marginBottom:8}}>{j.name}</div>
+                <div style={{color:C.muted,fontSize:12,marginTop:6,display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{generateMoveDescription(j.name)}</div>
                 <div style={{display:'flex',gap:14}}>
                   <div style={{textAlign:'center'}}><div style={{fontSize:18,fontWeight:800,color:C.accent}}>{j.count}</div><div style={{fontSize:10,color:C.muted}}>SETS</div></div>
                   {j.totalReps>0&&<div style={{textAlign:'center'}}><div style={{fontSize:18,fontWeight:800,color:C.green}}>{j.totalReps}</div><div style={{fontSize:10,color:C.muted}}>REPS</div></div>}
