@@ -599,6 +599,7 @@ function HistoryPage() {
 function JournalPage() {
   const [sort,setSort]=useState('count');
   const [q,setQ]=useState('');
+  const [overlay,setOverlay]=useState({open:false,src:'',fallback:'',name:''});
   const list = useMemo(()=>{
     let l=DATA.journal.filter(j=>j.name.toLowerCase().includes(q.toLowerCase()));
     if(sort==='count')l=[...l].sort((a,b)=>b.count-a.count);
@@ -617,7 +618,18 @@ function JournalPage() {
         {list.map((j,i)=>(
           <div key={i} style={S.card}>
             <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
-              {j.thumbnail&&<img src={j.thumbnail} alt="" style={{width:52,height:52,borderRadius:8,objectFit:'cover',background:C.border,flexShrink:0}} onError={e=>e.target.style.display='none'}/>}
+              {j.thumbnail&&(() => {
+                const gif = j.thumbnail.replace(/\.(jpg|jpeg|png)$/i,'.gif');
+                return (
+                  <img
+                    src={j.thumbnail}
+                    alt=""
+                    style={{width:52,height:52,borderRadius:8,objectFit:'cover',background:C.border,flexShrink:0,cursor:'pointer'}}
+                    onClick={()=>setOverlay({open:true,src:gif,fallback:j.thumbnail,name:j.name})}
+                    onError={e=>e.target.style.display='none'}
+                  />
+                );
+              })()}
               <div style={{flex:1}}>
                 <div style={{fontWeight:700,fontSize:13,lineHeight:1.3,marginBottom:8}}>{j.name}</div>
                 <div style={{color:C.muted,fontSize:12,marginTop:6,display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{generateMoveDescription(j.name)}</div>
@@ -631,6 +643,14 @@ function JournalPage() {
           </div>
         ))}
       </div>
+      {overlay.open && (
+        <div onClick={()=>setOverlay({open:false,src:'',fallback:'',name:''})} style={{position:'fixed',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.7)',zIndex:9999}}>
+          <div style={{maxWidth:'94vw',maxHeight:'94vh',padding:12,borderRadius:10,background:'rgba(0,0,0,0)'}} onClick={e=>e.stopPropagation()}>
+            <img src={overlay.src || overlay.fallback} alt={overlay.name} style={{maxWidth:'88vw',maxHeight:'88vh',borderRadius:10,display:'block',boxShadow:'0 6px 30px rgba(0,0,0,0.6)'}} onError={e=>{if(e.target.src!==overlay.fallback) e.target.src=overlay.fallback}}/>
+            <div style={{color:C.text,textAlign:'center',marginTop:8,fontWeight:700}}>{overlay.name}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
