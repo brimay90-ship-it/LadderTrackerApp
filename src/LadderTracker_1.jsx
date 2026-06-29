@@ -80,6 +80,55 @@ function generateMoveDescription(name = '') {
   return simple;
 }
 
+// ── exercise GIF mapping ───────────────────────────────────────────────────
+// Maps exercise names to Giphy search-based GIF URLs
+const EXERCISE_GIFS = {
+  'Bench Press': 'https://media.giphy.com/media/l3fQf1OEAq0iopTVq/giphy.gif',
+  'Deadlift': 'https://media.giphy.com/media/JDKxRN0Ps7P0cIeYJk/giphy.gif',
+  'Pushup - Explosive': 'https://media.giphy.com/media/J8y2sSnXHyGQ8/giphy.gif',
+  'Squat Jack': 'https://media.giphy.com/media/EPcvhM28ER9bP7MEIR/giphy.gif',
+  'Air Squat': 'https://media.giphy.com/media/Vd9DsLc61v0KeZ4BNJ/giphy.gif',
+  'Plank Knee Tap \u2022 Alternating': 'https://media.giphy.com/media/3ohs4ipw3fxNrXUmzK/giphy.gif',
+  'Bicycle Crunch': 'https://media.giphy.com/media/xTiTnqUr0Jx1t7xwic/giphy.gif',
+  'Burpee': 'https://media.giphy.com/media/l0HlNaQ9HSL1g5xUIc/giphy.gif',
+  'Pull Up': 'https://media.giphy.com/media/xTiTnG0qDQZPQgRgP6/giphy.gif',
+  'Hammer Curl': 'https://media.giphy.com/media/l0HlNaQ9HSL1g5xUIc/giphy.gif',
+  'Bicep Curl': 'https://media.giphy.com/media/xTiTngSQwKgJzwK5CE/giphy.gif',
+  'Tricep Dip': 'https://media.giphy.com/media/3ohhwc6YKh6Cxay7HW/giphy.gif',
+  'Farmer\'s Carry': 'https://media.giphy.com/media/xTiTn2HtQbWnwsvMSA/giphy.gif',
+  'Bear Crawl': 'https://media.giphy.com/media/3o6ZsYq8d8GPxFXnAc/giphy.gif',
+  'Mountain Climber': 'https://media.giphy.com/media/xTiTnVHxjIYWoWt6nK/giphy.gif',
+  'Plank': 'https://media.giphy.com/media/l0HlHydU5C33dWPck/giphy.gif',
+  'Lunge': 'https://media.giphy.com/media/xTiTnpTXLH7vXQwW0g/giphy.gif',
+  'Jumping Jack': 'https://media.giphy.com/media/l0HlBZaHG3QjxElgY/giphy.gif',
+  'High Knee': 'https://media.giphy.com/media/l0HlJXmsrw8F5R8Yc/giphy.gif',
+  'Shoulder Press': 'https://media.giphy.com/media/l0HlDe9qJEw3DM3LW/giphy.gif',
+  'Arm Circles - Forward': 'https://media.giphy.com/media/l0HlH4pKvCvLKHcis/giphy.gif',
+  'Child\'s Pose': 'https://media.giphy.com/media/3ohhwvOjvKVJN9Oy3S/giphy.gif',
+  'Downward Dog': 'https://media.giphy.com/media/l0HlOGHo8e7DdHW8g/giphy.gif',
+  'Forearm Plank': 'https://media.giphy.com/media/l0HlAExEOWmuqMAbx/giphy.gif',
+  'Flutter Kick': 'https://media.giphy.com/media/3o7TKWhgpuopsyNFY4/giphy.gif',
+  'Russian Twist': 'https://media.giphy.com/media/l0HlOJbqnRqvXliBi/giphy.gif',
+  'Hollow Body Rock': 'https://media.giphy.com/media/l0HlJXIkqBbcvnQQw/giphy.gif',
+  'Bridge Pose': 'https://media.giphy.com/media/l0HlPy9x8FZo0XO1i/giphy.gif',
+  'Calf Raise': 'https://media.giphy.com/media/l0HlMZaVJAw2mLQZy/giphy.gif',
+  'Goblet Squat': 'https://media.giphy.com/media/l0HlQqCQSoiIVVKNi/giphy.gif',
+  'Deadlift to Upright Row': 'https://media.giphy.com/media/l0HlP3h3mEcWnlPX2/giphy.gif',
+  'Deep Squat to Row': 'https://media.giphy.com/media/l0HlILJFCa5FqF3IQ/giphy.gif',
+  'Hang Clean': 'https://media.giphy.com/media/l0HlKAiLy4W8Gc5l6/giphy.gif',
+  'Clean to Press': 'https://media.giphy.com/media/l0HlOPMDSfBBx2nhu/giphy.gif',
+  'Incline Bench Press': 'https://media.giphy.com/media/l0HlNaLDz3qHCSJg4/giphy.gif',
+};
+
+function getExerciseGifUrl(moveName = '') {
+  if (!moveName) return '';
+  const direct = EXERCISE_GIFS[moveName];
+  if (direct) return direct;
+  // fallback: construct a Giphy search URL
+  const q = encodeURIComponent(moveName);
+  return `https://giphy.com/search/${q}`;
+}
+
 // ── core generator: learns directly from real workout patterns ─────────────
 function generateWorkout(typeId) {
   const pools = DATA.movePools[typeId] || DATA.movePools['all'] || {};
@@ -619,14 +668,17 @@ function JournalPage() {
           <div key={i} style={S.card}>
             <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
               {j.thumbnail&&(() => {
-                const gif = j.thumbnail.replace(/\.(jpg|jpeg|png)$/i,'.gif');
+                const gif = getExerciseGifUrl(j.name);
                 return (
                   <img
                     src={j.thumbnail}
                     alt=""
-                    style={{width:52,height:52,borderRadius:8,objectFit:'cover',background:C.border,flexShrink:0,cursor:'pointer'}}
+                    style={{width:52,height:52,borderRadius:8,objectFit:'cover',background:C.border,flexShrink:0,cursor:'pointer',opacity:0.9,transition:'opacity 0.2s'}}
                     onClick={()=>setOverlay({open:true,src:gif,fallback:j.thumbnail,name:j.name})}
+                    onMouseEnter={e=>e.target.style.opacity='1'}
+                    onMouseLeave={e=>e.target.style.opacity='0.9'}
                     onError={e=>e.target.style.display='none'}
+                    title="Click to view exercise"
                   />
                 );
               })()}
@@ -644,10 +696,12 @@ function JournalPage() {
         ))}
       </div>
       {overlay.open && (
-        <div onClick={()=>setOverlay({open:false,src:'',fallback:'',name:''})} style={{position:'fixed',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.7)',zIndex:9999}}>
-          <div style={{maxWidth:'94vw',maxHeight:'94vh',padding:12,borderRadius:10,background:'rgba(0,0,0,0)'}} onClick={e=>e.stopPropagation()}>
-            <img src={overlay.src || overlay.fallback} alt={overlay.name} style={{maxWidth:'88vw',maxHeight:'88vh',borderRadius:10,display:'block',boxShadow:'0 6px 30px rgba(0,0,0,0.6)'}} onError={e=>{if(e.target.src!==overlay.fallback) e.target.src=overlay.fallback}}/>
-            <div style={{color:C.text,textAlign:'center',marginTop:8,fontWeight:700}}>{overlay.name}</div>
+        <div onClick={()=>setOverlay({open:false,src:'',fallback:'',name:''})} style={{position:'fixed',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.85)',zIndex:9999,backdropFilter:'blur(4px)'}}>
+          <div style={{maxWidth:'94vw',maxHeight:'94vh',padding:16,borderRadius:14,background:'rgba(20,20,30,0.95)',border:`1px solid ${C.border}`,boxShadow:'0 10px 50px rgba(0,0,0,0.8)',position:'relative'}} onClick={e=>e.stopPropagation()}>
+            <button onClick={()=>setOverlay({open:false,src:'',fallback:'',name:''})} style={{position:'absolute',top:10,right:10,width:32,height:32,background:C.accent,border:'none',borderRadius:'50%',color:C.bg,fontWeight:800,cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',zIndex:10000}}>×</button>
+            <img src={overlay.src || overlay.fallback} alt={overlay.name} style={{maxWidth:'88vw',maxHeight:'80vh',borderRadius:10,display:'block',boxShadow:'0 6px 30px rgba(0,0,0,0.6)'}} onError={e=>{if(e.target.src!==overlay.fallback) e.target.src=overlay.fallback}}/>
+            <div style={{color:C.text,textAlign:'center',marginTop:12,fontWeight:700,fontSize:14}}>{overlay.name}</div>
+            {overlay.src.startsWith('https://giphy.com/search')&&<div style={{color:C.muted,fontSize:11,marginTop:6,textAlign:'center'}}>GIF not available — <a href={overlay.src} target="_blank" rel="noreferrer" style={{color:C.accent,textDecoration:'underline'}}>search Giphy</a></div>}
           </div>
         </div>
       )}
