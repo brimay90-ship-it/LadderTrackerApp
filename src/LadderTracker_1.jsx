@@ -330,9 +330,10 @@ function generateWorkout(typeId) {
 // ── Styles ─────────────────────────────────────────────────────────────────
 const S = {
   app:    { width:'100%', background:C.bg, minHeight:'100vh', color:C.text, fontFamily:"'Inter','Segoe UI',sans-serif", fontSize:14, boxSizing:'border-box' },
-  topBar: { width:'100%', background:C.surface, borderBottom:`1px solid ${C.border}`, padding:'0 20px', display:'flex', alignItems:'center', gap:20, height:52, position:'sticky', top:0, zIndex:100, boxSizing:'border-box' },
+  topBar: { width:'100%', background:C.surface, borderBottom:`1px solid ${C.border}`, padding:'12px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, flexWrap:'wrap', position:'sticky', top:0, zIndex:100, boxSizing:'border-box' },
   logo:   { fontWeight:800, fontSize:17, color:C.accent, letterSpacing:-0.5 },
-  navBtn: a => ({ background:a?C.accentDim:'none', border:'none', color:a?C.accent:C.muted, cursor:'pointer', padding:'5px 14px', borderRadius:6, fontWeight:a?700:400, fontSize:13 }),
+  navRow: { display:'flex', flexWrap:'wrap', gap:8, justifyContent:'flex-end', alignItems:'center', minWidth:0 },
+  navBtn: a => ({ background:a?C.accentDim:'none', border:'none', color:a?C.accent:C.muted, cursor:'pointer', padding:'5px 14px', borderRadius:6, fontWeight:a?700:400, fontSize:13, whiteSpace:'nowrap' }),
   page:   { width:'100%', maxWidth:1100, margin:'0 auto', padding:'24px 20px', boxSizing:'border-box' },
   card:   { background:C.card, border:`1px solid ${C.border}`, borderRadius:12, padding:20, marginBottom:14 },
   hdr:    { fontSize:11, fontWeight:700, color:C.muted, letterSpacing:1.5, textTransform:'uppercase', marginBottom:10, marginTop:20 },
@@ -675,7 +676,7 @@ export default function App() {
     <div className="ladder-root" style={S.app}>
       <div className="topBar" style={S.topBar}>
         <span style={S.logo}>LADDER</span>
-        <div style={{display:'flex',gap:2}}>
+        <div style={S.navRow}>
           {tabs.map(t=><button key={t.id} style={S.navBtn(tab===t.id)} onClick={()=>setTab(t.id)}>{t.label}</button>)}
         </div>
       </div>
