@@ -418,7 +418,7 @@ const S = {
 };
 
 // ── MoveCard ────────────────────────────────────────────────────────────────
-function MoveCard({ m, onRemove }) {
+function MoveCard({ m, onRemove, onThumbnailClick }) {
   if (m.isRest) return (
     <div className="restRow" style={S.restRow}>
       Rest {m.duration}s {onRemove && <span onClick={onRemove} style={{cursor:'pointer',marginLeft:6,color:C.muted}}>×</span>}
@@ -427,7 +427,7 @@ function MoveCard({ m, onRemove }) {
   return (
     <div className="moveRow" style={S.moveRow}>
       <div style={{display:'flex',alignItems:'center',gap:8}}>
-        {m.thumbnail && <img src={m.thumbnail} alt="" style={{width:34,height:34,borderRadius:6,objectFit:'cover',background:C.border,flexShrink:0}} onError={e=>e.target.style.display='none'}/>}
+        {m.thumbnail && <img src={m.thumbnail} alt="" style={{width:34,height:34,borderRadius:6,objectFit:'cover',background:C.border,flexShrink:0,cursor:'pointer',opacity:0.85,transition:'opacity 0.2s'}} onClick={()=>onThumbnailClick&&onThumbnailClick(m)} onMouseEnter={e=>e.target.style.opacity='1'} onMouseLeave={e=>e.target.style.opacity='0.85'} onError={e=>e.target.style.display='none'} title="Click to view exercise"/>}
         <div>
           <div style={{fontSize:12,fontWeight:600,lineHeight:1.3}}>{m.name}</div>
           <div style={{color:C.muted,fontSize:11}}>{m.reps?`${m.reps} reps`:''}{m.reps&&m.duration?' · ':''}{m.duration?`${m.duration}s`:''}</div>
@@ -438,12 +438,12 @@ function MoveCard({ m, onRemove }) {
   );
 }
 
-function WorkoutSections({ sections, editable, onRemove }) {
+function WorkoutSections({ sections, editable, onRemove, onThumbnailClick }) {
   return sections.map((s,si) => (
     <div key={si} style={{marginBottom:14}}>
       <div className="secHdr" style={S.secHdr}>{s.name.toUpperCase()}</div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:3}}>
-        {s.moves.map((m,mi) => <MoveCard key={mi} m={m} onRemove={editable?()=>onRemove(si,mi):null}/>)}
+        {s.moves.map((m,mi) => <MoveCard key={mi} m={m} onRemove={editable?()=>onRemove(si,mi):null} onThumbnailClick={onThumbnailClick}/>)}
       </div>
     </div>
   ));
@@ -457,6 +457,12 @@ function GeneratorPage() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState([]);
   const [viewing, setViewing] = useState(null);
+  const [overlay, setOverlay] = useState({open:false,src:'',fallback:'',name:''});
+
+  const onThumbnailClick = (move) => {
+    const gif = getExerciseGifUrl(move.name);
+    setOverlay({open:true, src:gif, fallback:move.thumbnail || '', name:move.name});
+  };
 
   const typeInfo = typeId ? TYPES.find(t=>t.id===typeId) : null;
 
@@ -494,7 +500,7 @@ function GeneratorPage() {
       <div style={S.card}>
         <div style={{fontSize:19,fontWeight:800,marginBottom:4}}>{viewing.name}</div>
         <div style={{color:C.muted,fontSize:13,marginBottom:16}}>{viewing.date} · {viewing.exerciseCount} exercises · ~{Math.round(viewing.totalTimeSec/60)} min</div>
-        <WorkoutSections sections={viewing.sections} editable={false} onRemove={null}/>
+        <WorkoutSections sections={viewing.sections} editable={false} onRemove={null} onThumbnailClick={onThumbnailClick}/>
       </div>
     </div>
   );
@@ -559,7 +565,18 @@ function GeneratorPage() {
             <div style={{color:C.muted,fontSize:12,marginBottom:14,padding:'8px 12px',background:C.accentDim,borderRadius:8}}>
               💡 Modeled on {DATA.workoutPatterns.filter(w=>w.type===typeId).length} real {typeInfo.label} workouts from Vitality. Tap × to remove any move, then regenerate for fresh options.
             </div>
-            <WorkoutSections sections={sections} editable onRemove={removeMove}/>
+            <WorkoutSections sections={sections} editable onRemove={removeMove} onThumbnailClick={onThumbnailClick}/>
+          </div>
+        </div>
+      )}
+
+      {overlay.open && (
+        <div onClick={()=>setOverlay({open:false,src:'',fallback:'',name:''})} style={{position:'fixed',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.85)',zIndex:9999,backdropFilter:'blur(4px)'}}>
+          <div style={{maxWidth:'94vw',maxHeight:'94vh',padding:16,borderRadius:14,background:'rgba(20,20,30,0.95)',border:`1px solid ${C.border}`,boxShadow:'0 10px 50px rgba(0,0,0,0.8)',position:'relative'}} onClick={e=>e.stopPropagation()}>
+            <button onClick={()=>setOverlay({open:false,src:'',fallback:'',name:''})} style={{position:'absolute',top:10,right:10,width:32,height:32,background:C.accent,border:'none',borderRadius:'50%',color:C.bg,fontWeight:800,cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',zIndex:10000}}>×</button>
+            <img src={overlay.src || overlay.fallback} alt={overlay.name} style={{maxWidth:'88vw',maxHeight:'80vh',borderRadius:10,display:'block',boxShadow:'0 6px 30px rgba(0,0,0,0.6)'}} onError={e=>{if(e.target.src!==overlay.fallback) e.target.src=overlay.fallback}}/>
+            <div style={{color:C.text,textAlign:'center',marginTop:12,fontWeight:700,fontSize:14}}>{overlay.name}</div>
+            {overlay.src.startsWith('https://giphy.com/search')&&<div style={{color:C.muted,fontSize:11,marginTop:6,textAlign:'center'}}>GIF not available — <a href={overlay.src} target="_blank" rel="noreferrer" style={{color:C.accent,textDecoration:'underline'}}>search Giphy</a></div>}
           </div>
         </div>
       )}
@@ -570,10 +587,16 @@ function GeneratorPage() {
 // ── HistoryPage ─────────────────────────────────────────────────────────────
 function HistoryPage() {
   const [sel, setSel] = useState(null);
+  const [overlay, setOverlay] = useState({open:false,src:'',fallback:'',name:''});
   const patternMap = Object.fromEntries(DATA.workoutPatterns.map(w=>[w.id,w]));
   const sessions = [...DATA.sessions].sort((a,b)=>b.date.localeCompare(a.date));
   const selPattern = sel ? patternMap[sel.workoutID] : null;
   const selectedComparable = selPattern ? getComparablePattern(selPattern) : null;
+
+  const onThumbnailClick = (move) => {
+    const gif = getExerciseGifUrl(move.name);
+    setOverlay({open:true, src:gif, fallback:move.thumbnail || '', name:move.name});
+  };
 
   return (
     <div>
@@ -606,7 +629,7 @@ function HistoryPage() {
             </div>
             <button onClick={()=>setSel(null)} style={{background:'none',border:'none',color:C.muted,fontSize:20,cursor:'pointer'}}>✕</button>
           </div>
-          <WorkoutSections sections={selPattern.sections.filter(s=>s.role!=='intro'&&s.role!=='outro')} editable={false} onRemove={null}/>
+          <WorkoutSections sections={selPattern.sections.filter(s=>s.role!=='intro'&&s.role!=='outro')} editable={false} onRemove={null} onThumbnailClick={onThumbnailClick}/>
         </div>
       )}
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(270px,1fr))',gap:10}}>
@@ -640,6 +663,16 @@ function HistoryPage() {
           );
         })}
       </div>
+      {overlay.open && (
+        <div onClick={()=>setOverlay({open:false,src:'',fallback:'',name:''})} style={{position:'fixed',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.85)',zIndex:9999,backdropFilter:'blur(4px)'}}>
+          <div style={{maxWidth:'94vw',maxHeight:'94vh',padding:16,borderRadius:14,background:'rgba(20,20,30,0.95)',border:`1px solid ${C.border}`,boxShadow:'0 10px 50px rgba(0,0,0,0.8)',position:'relative'}} onClick={e=>e.stopPropagation()}>
+            <button onClick={()=>setOverlay({open:false,src:'',fallback:'',name:''})} style={{position:'absolute',top:10,right:10,width:32,height:32,background:C.accent,border:'none',borderRadius:'50%',color:C.bg,fontWeight:800,cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',zIndex:10000}}>×</button>
+            <img src={overlay.src || overlay.fallback} alt={overlay.name} style={{maxWidth:'88vw',maxHeight:'80vh',borderRadius:10,display:'block',boxShadow:'0 6px 30px rgba(0,0,0,0.6)'}} onError={e=>{if(e.target.src!==overlay.fallback) e.target.src=overlay.fallback}}/>
+            <div style={{color:C.text,textAlign:'center',marginTop:12,fontWeight:700,fontSize:14}}>{overlay.name}</div>
+            {overlay.src.startsWith('https://giphy.com/search')&&<div style={{color:C.muted,fontSize:11,marginTop:6,textAlign:'center'}}>GIF not available — <a href={overlay.src} target="_blank" rel="noreferrer" style={{color:C.accent,textDecoration:'underline'}}>search Giphy</a></div>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
