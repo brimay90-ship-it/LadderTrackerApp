@@ -329,11 +329,11 @@ function generateWorkout(typeId) {
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 const S = {
-  app:    { background:C.bg, minHeight:'100vh', color:C.text, fontFamily:"'Inter','Segoe UI',sans-serif", fontSize:14 },
-  topBar: { background:C.surface, borderBottom:`1px solid ${C.border}`, padding:'0 20px', display:'flex', alignItems:'center', gap:20, height:52, position:'sticky', top:0, zIndex:100 },
+  app:    { width:'100%', background:C.bg, minHeight:'100vh', color:C.text, fontFamily:"'Inter','Segoe UI',sans-serif", fontSize:14, boxSizing:'border-box' },
+  topBar: { width:'100%', background:C.surface, borderBottom:`1px solid ${C.border}`, padding:'0 20px', display:'flex', alignItems:'center', gap:20, height:52, position:'sticky', top:0, zIndex:100, boxSizing:'border-box' },
   logo:   { fontWeight:800, fontSize:17, color:C.accent, letterSpacing:-0.5 },
   navBtn: a => ({ background:a?C.accentDim:'none', border:'none', color:a?C.accent:C.muted, cursor:'pointer', padding:'5px 14px', borderRadius:6, fontWeight:a?700:400, fontSize:13 }),
-  page:   { maxWidth:1100, margin:'0 auto', padding:'24px 20px' },
+  page:   { width:'100%', maxWidth:1100, margin:'0 auto', padding:'24px 20px', boxSizing:'border-box' },
   card:   { background:C.card, border:`1px solid ${C.border}`, borderRadius:12, padding:20, marginBottom:14 },
   hdr:    { fontSize:11, fontWeight:700, color:C.muted, letterSpacing:1.5, textTransform:'uppercase', marginBottom:10, marginTop:20 },
   badge:  (bg='#333',fg='#fff') => ({ background:bg, borderRadius:5, padding:'2px 9px', fontSize:11, fontWeight:600, display:'inline-block', color:fg }),
@@ -348,12 +348,12 @@ const S = {
 // ── MoveCard ────────────────────────────────────────────────────────────────
 function MoveCard({ m, onRemove }) {
   if (m.isRest) return (
-    <div style={S.restRow}>
+    <div className="restRow" style={S.restRow}>
       Rest {m.duration}s {onRemove && <span onClick={onRemove} style={{cursor:'pointer',marginLeft:6,color:C.muted}}>×</span>}
     </div>
   );
   return (
-    <div style={S.moveRow}>
+    <div className="moveRow" style={S.moveRow}>
       <div style={{display:'flex',alignItems:'center',gap:8}}>
         {m.thumbnail && <img src={m.thumbnail} alt="" style={{width:34,height:34,borderRadius:6,objectFit:'cover',background:C.border,flexShrink:0}} onError={e=>e.target.style.display='none'}/>}
         <div>
@@ -369,7 +369,7 @@ function MoveCard({ m, onRemove }) {
 function WorkoutSections({ sections, editable, onRemove }) {
   return sections.map((s,si) => (
     <div key={si} style={{marginBottom:14}}>
-      <div style={S.secHdr}>{s.name.toUpperCase()}</div>
+      <div className="secHdr" style={S.secHdr}>{s.name.toUpperCase()}</div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:3}}>
         {s.moves.map((m,mi) => <MoveCard key={mi} m={m} onRemove={editable?()=>onRemove(si,mi):null}/>)}
       </div>
@@ -672,14 +672,14 @@ export default function App() {
   const [tab,setTab]=useState('generate');
   const tabs=[{id:'generate',label:'⚡️ Generate'},{id:'dashboard',label:'📊 Dashboard'},{id:'history',label:'📅 History'},{id:'journal',label:'💪 Exercises'}];
   return (
-    <div style={S.app}>
-      <div style={S.topBar}>
+    <div className="ladder-root" style={S.app}>
+      <div className="topBar" style={S.topBar}>
         <span style={S.logo}>LADDER</span>
         <div style={{display:'flex',gap:2}}>
           {tabs.map(t=><button key={t.id} style={S.navBtn(tab===t.id)} onClick={()=>setTab(t.id)}>{t.label}</button>)}
         </div>
       </div>
-      <div style={S.page}>
+      <div className="page" style={S.page}>
         {tab==='generate'&&<GeneratorPage/>}
         {tab==='dashboard'&&<Dashboard/>}
         {tab==='history'&&<HistoryPage/>}
